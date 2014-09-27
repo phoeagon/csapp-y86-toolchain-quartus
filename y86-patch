@@ -1,0 +1,30 @@
+diff -ruN sim/Makefile y86/Makefile
+--- sim/Makefile	2011-04-27 04:50:26.000000000 +0800
++++ y86/Makefile	2014-09-27 13:34:59.811165761 +0800
+@@ -36,3 +36,12 @@
+ 	(cd y86-code; make clean)
+ 	(cd ptest; make clean)
+ 
++misc:
++	(cd misc; make all)
++
++%.mif : %.yo misc
++	./misc/yis $<
++	srec_cat status.dump --binary -byte-swap 4 -o $@ --mif 32
++	
++%.yo : %.ys misc
++	./misc/yas $<
+diff -ruN sim/misc/yis.c y86/misc/yis.c
+--- sim/misc/yis.c	2009-03-29 23:48:07.000000000 +0800
++++ y86/misc/yis.c	2014-09-27 13:34:59.811165761 +0800
+@@ -55,6 +55,10 @@
+ 
+     printf("\nChanges to memory:\n");
+     diff_mem(savem, s->m, stdout);
++    FILE* fdump = fopen("status.dump","wb");
++    fwrite(((char*)savem)+32,MEM_SIZE/2,1,fdump);
++    fsync(fdump);
++    fclose(fdump);
+ 
+     free_state(s);
+     free_reg(saver);
